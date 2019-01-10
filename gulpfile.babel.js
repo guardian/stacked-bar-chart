@@ -198,7 +198,7 @@ gulp.task('deploy', ['build'], cb => {
     }).then(res => {
         let isLive = res.env === 'live';
         gulp.src(`${buildDir}/**/*`)
-            .pipe(s3Upload('max-age=300000', s3VersionPath))
+            .pipe(s3Upload('max-age=30', s3VersionPath))
             .on('end', () => {
                 gulp.src('config.json')
                     .pipe(file('preview', version))
@@ -267,7 +267,7 @@ gulp.task('deploylive', ['build'], cb => {
     }
 
     gulp.src(`${buildDir}/**/*`)
-        .pipe(s3Upload('max-age=31536000', s3VersionPath))
+        .pipe(s3Upload('max-age=30', s3VersionPath))
         .on('end', () => {
             gulp.src('config.json')
                 .pipe(file('preview', version))
@@ -284,7 +284,7 @@ gulp.task('deploypreview', ['build'], cb => {
     }
 
     gulp.src(`${buildDir}/**/*`)
-        .pipe(s3Upload('max-age=31536000', s3VersionPath))
+        .pipe(s3Upload('max-age=30', s3VersionPath))
         .on('end', () => {
             gulp.src('config.json')
                 .pipe(file('preview', version))

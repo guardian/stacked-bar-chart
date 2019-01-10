@@ -110,8 +110,12 @@ function init(results) {
 	var xAxis;
 	var yAxis;
 
+
 	var ticks = x.domain().filter(function(d,i){ return !(i%10); } );
 
+	if (isMobile) {
+		ticks = x.domain().filter(function(d,i){ return !(i%20); } );
+	}	
 
 	if (isMobile) {
 		xAxis = d3.axisBottom(x).tickValues(ticks);
@@ -262,7 +266,7 @@ function init(results) {
 
 function getURLParams(paramName) {
 
-	const params = window.parent.location.search.substring(1).split("&")
+	const params = window.location.search.substring(1).split("&")
 
     for (let i = 0; i < params.length; i++) {
     	let val = params[i].split("=");
