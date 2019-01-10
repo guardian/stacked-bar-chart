@@ -48,6 +48,9 @@ function init(results) {
 		margin = {top: 0, right: 0, bottom: 20, left:40};	
 	}	
 
+	width = width - margin.left - margin.right,
+    height = height - margin.top - margin.bottom;
+
 	d3.select("#chartTitle").text(details[0].title)
     d3.select("#subTitle").text(details[0].subtitle)
     d3.select("#sourceText").html(details[0].source)
@@ -90,22 +93,33 @@ function init(results) {
 		});	
 	})
 
-    var x = d3.scaleBand().range([0, width]);
+	labels.forEach(function (d) {
+		d.x = +d.x
+		d.y = +d.y
+		d.offset = +d.offset
+	});
+
+	console.log(labels)
+
+    var x = d3.scaleBand().range([0, width]).paddingInner(0.08);
     var y = d3.scaleLinear().range([height, 0]);
 
     x.domain(data.map(function(d) { return d[xVar]; }));
-	y.domain(d3.extent(data, function(d) { return d[keys[0]]; }));
+	y.domain(d3.extent(data, function(d) { return d[keys[0]]; })).nice();
 
 	var xAxis;
 	var yAxis;
 
+	var ticks = x.domain().filter(function(d,i){ return !(i%10); } );
+
+
 	if (isMobile) {
-		xAxis = d3.axisBottom(x).ticks(5);
+		xAxis = d3.axisBottom(x).tickValues(ticks);
 		yAxis = d3.axisLeft(y).tickFormat(function (d) { return numberFormat(d)}).ticks(5);
 	}
 
 	else {
-		xAxis = d3.axisBottom(x);
+		xAxis = d3.axisBottom(x).tickValues(ticks);
 		yAxis = d3.axisLeft(y).tickFormat(function (d) { return numberFormat(d)});
 	}
 
@@ -124,7 +138,7 @@ function init(results) {
 			.attr("class", "bar")
 			.attr("x", function(d) { return x(d[xVar]) })
 			.style("fill", function(d) {
-					return "#197caa"
+					return "rgb(204, 10, 17)"
 			})
 			.attr("y", function(d) { 
 				return y(Math.max(d[keys[0]], 0))
@@ -137,8 +151,114 @@ function init(results) {
 			});
 
 
+	function textPadding(d) {
+		if (d.offset > 0) {
+			return 12
+		}
 
-}	
+		else {
+			return - 2
+		}
+	}
+
+	function textPaddingMobile(d) {
+		if (d.offset > 0) {
+			return 12
+		}
+
+		else {
+			return 4
+		}
+	}		
+
+	features.selectAll(".annotationLine")
+		.data(labels)
+		.enter().append("line")
+		.attr("class", "annotationLine")
+		.attr("x1", function(d) { return x(d.x) + x.bandwidth()/2; })
+		.attr("y1", function(d) { return y(d.y) })
+		.attr("x2", function(d) { return x(d.x) + x.bandwidth()/2; })
+		.attr("y2", function(d) { return y(d.y) + d.offset })
+		.style("opacity", 1)	
+		.attr("stroke", "#000");  
+
+	var footerAnnotations = d3.select("#footerAnnotations");
+	
+	footerAnnotations.html("");	
+
+	if (isMobile) {
+
+		features.selectAll(".annotationCircles")
+				.data(labels)
+				.enter().append("circle")
+				.attr("class", "annotationCircle")
+				.attr("cy", function(d) { return y(d.y) + d.offset + textPadding(d)/2})
+				.attr("cx", function(d) { return x(d.x) + x.bandwidth()/2})
+				.attr("r", 8)
+				.attr("fill", "#000");
+
+		features.selectAll(".annotationTextMobile")
+				.data(labels)
+				.enter().append("text")
+				.attr("class", "annotationTextMobile")
+				.attr("y", function(d) { return y(d.y) + d.offset + textPaddingMobile(d)})
+				.attr("x", function(d) { return x(d.x) + x.bandwidth()/2})
+				.style("text-anchor", "middle")
+				.style("opacity", 1)
+				.attr("fill", "#FFF")
+				.text(function(d,i) { 
+					return i + 1
+				});	
+		console.log(labels.length)
+		
+		if (labels.length > 0) {
+			footerAnnotations.append("span")
+				.attr("class", "annotationFooterHeader")
+				.text("Notes: ");
+		}
+
+		
+
+		labels.forEach(function(d,i) { 
+
+			footerAnnotations.append("span")
+				.attr("class", "annotationFooterNumber")
+				.text(i+1 + " - ");
+
+			if (i < labels.length -1 ) {
+				footerAnnotations.append("span")
+				.attr("class", "annotationFooterText")
+				.text(d.text + ", ");
+			}
+			
+			else {
+				footerAnnotations.append("span")
+					.attr("class", "annotationFooterText")
+					.text(d.text);
+			}	
+
+			
+
+		})		
+
+	}
+
+	else {
+
+		features.selectAll(".annotationText")
+			.data(labels)
+			.enter().append("text")
+			.attr("class", "annotationText")
+			.attr("y", function(d) { return y(d.y) + d.offset + textPadding(d)})
+			.attr("x", function(d) { return x(d.x) + x.bandwidth()/2})
+			.style("text-anchor", function(d) { return d.align })
+			.style("opacity", 1)
+			.text(function(d) {return d.text});
+
+	}		
+
+
+}	// end init
 
 function getURLParams(paramName) {
 
