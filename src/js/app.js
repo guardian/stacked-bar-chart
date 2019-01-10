@@ -96,7 +96,7 @@ function init(results) {
 	labels.forEach(function (d) {
 		d.x = +d.x
 		d.y = +d.y
-		d.offset = +d.offset
+		d.y2 = +d.y2
 	});
 
 	console.log(labels)
@@ -152,7 +152,7 @@ function init(results) {
 
 
 	function textPadding(d) {
-		if (d.offset > 0) {
+		if (d.y2 > 0) {
 			return 12
 		}
 
@@ -162,7 +162,7 @@ function init(results) {
 	}
 
 	function textPaddingMobile(d) {
-		if (d.offset > 0) {
+		if (d.y2 > 0) {
 			return 12
 		}
 
@@ -178,7 +178,7 @@ function init(results) {
 		.attr("x1", function(d) { return x(d.x) + x.bandwidth()/2; })
 		.attr("y1", function(d) { return y(d.y) })
 		.attr("x2", function(d) { return x(d.x) + x.bandwidth()/2; })
-		.attr("y2", function(d) { return y(d.y) + d.offset })
+		.attr("y2", function(d) { return y(d.y2) })
 		.style("opacity", 1)	
 		.attr("stroke", "#000");  
 
@@ -192,7 +192,7 @@ function init(results) {
 				.data(labels)
 				.enter().append("circle")
 				.attr("class", "annotationCircle")
-				.attr("cy", function(d) { return y(d.y) + d.offset + textPadding(d)/2})
+				.attr("cy", function(d) { return y(d.y2) + textPadding(d)/2})
 				.attr("cx", function(d) { return x(d.x) + x.bandwidth()/2})
 				.attr("r", 8)
 				.attr("fill", "#000");
@@ -201,7 +201,7 @@ function init(results) {
 				.data(labels)
 				.enter().append("text")
 				.attr("class", "annotationTextMobile")
-				.attr("y", function(d) { return y(d.y) + d.offset + textPaddingMobile(d)})
+				.attr("y", function(d) { return y(d.y2) + textPaddingMobile(d)})
 				.attr("x", function(d) { return x(d.x) + x.bandwidth()/2})
 				.style("text-anchor", "middle")
 				.style("opacity", 1)
@@ -249,7 +249,7 @@ function init(results) {
 			.data(labels)
 			.enter().append("text")
 			.attr("class", "annotationText")
-			.attr("y", function(d) { return y(d.y) + d.offset + textPadding(d)})
+			.attr("y", function(d) { return y(d.y2) })
 			.attr("x", function(d) { return x(d.x) + x.bandwidth()/2})
 			.style("text-anchor", function(d) { return d.align })
 			.style("opacity", 1)
