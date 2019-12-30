@@ -53,7 +53,7 @@
     "d3": "^5.7.0",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.6.1",
-    "handlebars": "^4.0.12",
+    "handlebars": "^4.3.0",
     "lodash": "^4.17.10",
     "mustache": "^2.3.0",
     "natives": "^1.1.6",
