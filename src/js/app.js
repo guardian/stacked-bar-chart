@@ -1,15 +1,17 @@
 import * as d3 from "d3"
 import { makeTooltip } from './modules/tooltips'
 
-var firstRun = true
+// var firstRun = true
 
 function init(results) {
+
 	const container = d3.select("#graphicContainer")
 	console.log(results)
-	var data = results.sheets.data
-	var details = results.sheets.details
-	var labels = results.sheets.labels
-	var userKey = results['sheets']['key']
+	var clone = clone = JSON.parse(JSON.stringify(results));
+	var data = clone.sheets.data
+	var details = clone.sheets.template
+	var labels = clone.sheets.labels
+	var userKey = clone['sheets']['key']
 	var optionalKeys = [];
 	var optionalColours = [];
 	var tooltip = null;
@@ -56,7 +58,7 @@ function init(results) {
 	var margin;
 	var dateParse = null
 	var timeInterval = null
-
+	var xAxisDateFormat = null
 	// Check if margin defined by user
 
 	if (details[0]['margin-top'] != "") {
@@ -79,6 +81,10 @@ function init(results) {
 
 	if (typeof details[0]['timeInterval'] != undefined) {
 		timeInterval = details[0]['timeInterval'];
+	}
+
+	if (typeof details[0]['xAxisDateFormat'] != undefined) {
+		xAxisDateFormat = d3.timeFormat(details[0]['xAxisDateFormat'])
 	}
 
 	if (details[0].tooltip!='' ) {
@@ -154,7 +160,7 @@ function init(results) {
 	data.forEach(function(d) {
 
 		if (dateParse != null) {
-			if (firstRun) {
+			if (typeof d[xVar] === 'string') {
 					d[xVar] = dateParse(d[xVar])
 			}
 			
@@ -163,18 +169,23 @@ function init(results) {
 		keys.forEach(function(key,i) { 
 			d[key] = +d[key]
 		});	
+
+	
+			d.Total = d3.sum(keys, k => +d[k]);
+		
+		
 	})
 
-	// console.log(data)
+	console.log(data)
 
 	labels.forEach(function (d) {
 
 		if (dateParse != null) {
 
-			d.x = dateParse(d.x)
+			d.x1 = dateParse(d.x1)
 		}	
 		
-		d.y = +d.y
+		d.y1 = +d.y1
 		d.y2 = +d.y2
 	});
 
@@ -226,7 +237,7 @@ function init(results) {
 	// }    
 
 	var layers = d3.stack().offset(d3.stackOffsetDiverging).keys(keys)(data)
-
+	console.log(layers)
 	layers.forEach(function(layer) {
 		console.log(layer.key)
 		layer.forEach(function(subLayer) {
@@ -254,12 +265,12 @@ function init(results) {
 	
 	console.log(ticks)
 	if (isMobile) {
-		xAxis = d3.axisBottom(x).tickValues(ticks).tickFormat(d3.timeFormat("%b %Y"))
+		xAxis = d3.axisBottom(x).tickValues(ticks).tickFormat(xAxisDateFormat)
 		yAxis = d3.axisLeft(y).tickFormat(function (d) { return numberFormat(d)}).ticks(5);
 	}
 
 	else {
-		xAxis = d3.axisBottom(x).tickValues(ticks).tickFormat(d3.timeFormat("%b %Y"))
+		xAxis = d3.axisBottom(x).tickValues(ticks).tickFormat(xAxisDateFormat)
 		yAxis = d3.axisLeft(y).tickFormat(function (d) { return numberFormat(d)});
 	}
 
@@ -273,7 +284,7 @@ function init(results) {
 		.call(yAxis)
 
 	var layer = features.selectAll('layer')
-		.data(layers)
+		.data(layers, d => d.key)
 		.enter()
 		.append('g')
 		.attr('class', d => "layer " + d.key)
@@ -303,7 +314,7 @@ function init(results) {
 		.call(yAxis)	
 
 	if (tooltip) {
-		makeTooltip(".barPart");	
+		makeTooltip(".barPart", xAxisDateFormat);	
 	}	
 	
 
@@ -331,9 +342,9 @@ function init(results) {
 		.data(labels)
 		.enter().append("line")
 		.attr("class", "annotationLine")
-		.attr("x1", function(d) { return x(d.x) + x.bandwidth()/2; })
-		.attr("y1", function(d) { return y(d.y) })
-		.attr("x2", function(d) { return x(d.x) + x.bandwidth()/2; })
+		.attr("x1", function(d) { return x(d.x1) + x.bandwidth()/2; })
+		.attr("y1", function(d) { return y(d.y1) })
+		.attr("x2", function(d) { return x(d.x1) + x.bandwidth()/2; })
 		.attr("y2", function(d) { return y(d.y2) })
 		.style("opacity", 1)	
 		.attr("stroke", "#000");  
@@ -349,7 +360,7 @@ function init(results) {
 				.enter().append("circle")
 				.attr("class", "annotationCircle")
 				.attr("cy", function(d) { return y(d.y2) + textPadding(d)/2})
-				.attr("cx", function(d) { return x(d.x) + x.bandwidth()/2})
+				.attr("cx", function(d) { return x(d.x1) + x.bandwidth()/2})
 				.attr("r", 8)
 				.attr("fill", "#000");
 
@@ -358,7 +369,7 @@ function init(results) {
 				.enter().append("text")
 				.attr("class", "annotationTextMobile")
 				.attr("y", function(d) { return y(d.y2) + textPaddingMobile(d)})
-				.attr("x", function(d) { return x(d.x) + x.bandwidth()/2})
+				.attr("x", function(d) { return x(d.x1) + x.bandwidth()/2})
 				.style("text-anchor", "middle")
 				.style("opacity", 1)
 				.attr("fill", "#FFF")
@@ -391,8 +402,6 @@ function init(results) {
 					.text(d.text);
 			}	
 
-			
-
 		})		
 
 	}
@@ -403,15 +412,15 @@ function init(results) {
 			.data(labels)
 			.enter().append("text")
 			.attr("class", "annotationText")
-			.attr("y", function(d) { return y(d.y2) })
-			.attr("x", function(d) { return x(d.x) + x.bandwidth()/2})
+			.attr("y", function(d) { return y(d.y2) - 4 })
+			.attr("x", function(d) { return x(d.x1) + x.bandwidth()/2})
 			.style("text-anchor", function(d) { return d.align })
 			.style("opacity", 1)
 			.text(function(d) {return d.text});
 
 	}		
 
-	firstRun = false
+	// firstRun = false
 
 }	// end init
 
@@ -430,11 +439,16 @@ function getURLParams(paramName) {
 }
 
 const key = getURLParams('key') //"10k7rSn5Y4x0V8RNyQ7oGDfhLvDqhUQ2frtZkDMoB1Xk"
+var location = getURLParams('location')
+
+if ( location == null ) {
+	location = 'docsdata'
+}
 
 if ( key != null ) {
 
 	Promise.all([
-		d3.json(`https://interactive.guim.co.uk/docsdata/${key}.json`)
+		d3.json(`https://interactive.guim.co.uk/${location}/${key}.json`)
 		])
 		.then((results) =>  {
 			init(results[0])

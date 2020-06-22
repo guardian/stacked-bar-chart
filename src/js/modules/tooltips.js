@@ -1,6 +1,6 @@
 import * as d3 from "d3"
 
-function makeTooltip(el) {
+function makeTooltip(el, xAxisDateFormat) {
 
 	console.log("make", el)
 	
@@ -14,7 +14,8 @@ function makeTooltip(el) {
 		    .style("opacity", 0);
 
 	els.on("mouseover", function(d) {
-		var text = `<b>${d.group}</b><br>${d.data[d.group]}`
+		
+		var text = `<b>${xAxisDateFormat(d.data.index)}</b><br>${d.group}: </b>${d.data[d.group]}<br>Total: ${d.data.Total}</b>`
 		tooltip.transition()
 			.duration(200)
 		   	.style("opacity", .9);
