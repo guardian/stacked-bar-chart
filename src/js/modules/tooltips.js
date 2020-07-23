@@ -13,9 +13,9 @@ function makeTooltip(el, xAxisDateFormat) {
 		    .style("background-color", "white")
 		    .style("opacity", 0);
 
-	els.on("mouseover", function(d) {
-		
-		var text = `<b>${xAxisDateFormat(d.data.index)}</b><br>${d.group}: </b>${d.data[d.group]}<br>Total: ${d.data.Total}</b>`
+	els.on("mouseover.tooltip", function(d) {
+		console.log()
+		var text = `<b>${xAxisDateFormat(d.data[Object.keys(d.data)[0]])}</b><br>${d.group}: </b>${d.data[d.group]}<br>Total: ${d.data.Total}</b>`
 		tooltip.transition()
 			.duration(200)
 		   	.style("opacity", .9);
